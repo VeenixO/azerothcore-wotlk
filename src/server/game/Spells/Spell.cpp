@@ -3246,6 +3246,18 @@ bool Spell::UpdateChanneledTargetList()
 
 SpellCastResult Spell::prepare(SpellCastTargets const* targets, AuraEffect const* triggeredByAura)
 {
+    //Creating Eluna Hook for secondary powers
+    #ifdef ELUNA
+        if (Player* playerCaster = m_caster->ToPlayer())
+        {
+            if (!sEluna->OnSpellCastStart(playerCaster, this))
+            {
+                finish(false);
+                return;
+            }
+        }
+    #endif
+
     if (m_CastItem)
     {
         m_castItemGUID = m_CastItem->GetGUID();
@@ -3611,6 +3623,29 @@ void Spell::_cast(bool skipCheck)
             m_caster->SetInFront(m_targets.GetObjectTarget());
 
     CallScriptBeforeCastHandlers();
+
+    //Creating Eluna hook for secondary powers
+    #ifdef ELUNA
+        if (Player* playerCaster = m_caster->ToPlayer())
+        {
+            if (!sEluna->OnSpellCastSuccess(playerCaster, this))
+            {
+                SendInterrupted(0);
+
+                if (playerCaster->GetTypeId() == TYPEID_PLAYER)
+                {
+                    playerCaster->RestoreSpellMods(this);
+                    // cleanup after mod system
+                    // triggered spell pointer can be not removed in some cases
+                    playerCaster->SetSpellModTakingSpell(this, false);
+                }
+                finish(false);
+                SetExecutedCurrently(false);
+
+                return;
+            }
+        }
+    #endif
 
     Player* modOwner = m_caster->GetSpellModOwner();
     // skip check if done already (for instant cast spells for example)
@@ -7819,6 +7854,12 @@ bool Spell::IsValidDeadOrAliveTarget(Unit const* target) const
 
 void Spell::HandleLaunchPhase()
 {
+    //Creating Eluna hook for secondary powers
+    if (Player* playerCaster = m_caster->ToPlayer())
+    {
+        sScriptMgr->OnPlayerSpellLaunch(playerCaster, this);
+    }
+
     // handle effects with SPELL_EFFECT_HANDLE_LAUNCH mode
     for (uint32 i = 0; i < MAX_SPELL_EFFECTS; ++i)
     {
@@ -8689,7 +8730,7 @@ namespace Acore
         }
         else if (_spellInfo->HasAttribute(SPELL_ATTR0_CU_CONE_LINE))
         {
-            if (!_caster->HasInLine(target, _caster->GetObjectSize() + target->GetObjectSize()))
+            if (!_caster->HasInLine(target, _caster->GetObjectSize()))
                 return false;
         }
         else
@@ -8709,7 +8750,7 @@ namespace Acore
     bool WorldObjectSpellTrajTargetCheck::operator()(WorldObject* target)
     {
         // return all targets on missile trajectory (0 - size of a missile)
-        if (!_caster->HasInLine(target, target->GetObjectSize()))
+        if (!_caster->HasInLine(target, 0))
             return false;
         return WorldObjectSpellAreaTargetCheck::operator ()(target);
     }
