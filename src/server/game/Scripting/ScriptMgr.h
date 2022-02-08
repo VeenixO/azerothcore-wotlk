@@ -1043,6 +1043,15 @@ public:
 
     virtual void OnTextEmote(Player* /*player*/, uint32 /*textEmote*/, uint32 /*emoteNum*/, ObjectGuid /*guid*/) { }
 
+    // Called in Spell::Prepare.
+    virtual void OnSpellCastStart(Player* /*player*/, Spell* /*spell*/) { }
+
+    // Called in Spell::Cast.
+    virtual void OnSpellCastSuccess(Player* /*player*/, Spell* /*spell*/) { }
+
+    // Called in Spell::HandleLaunchPhase.
+    virtual void OnSpellLaunch(Player* /*player*/, Spell* /*spell*/) { }
+
     // Called in Spell::Cast.
     virtual void OnSpellCast(Player* /*player*/, Spell* /*spell*/, bool /*skipCheck*/) { }
 

@@ -410,6 +410,31 @@ void OnlyOnceAreaTriggerScript::ResetAreaTriggerDone(Player const* player, AreaT
     }
 }
 
+//For secondary powers
+void ScriptMgr::OnPlayerSpellCastStart(Player* player, Spell* spell)
+{
+#ifdef ELUNA
+    sEluna->OnSpellCastStart(player, spell);
+#endif
+    FOREACH_SCRIPT(PlayerScript)->OnSpellCastStart(player, spell);
+}
+
+void ScriptMgr::OnPlayerSpellCastSuccess(Player* player, Spell* spell)
+{
+#ifdef ELUNA
+    sEluna->OnSpellCastSuccess(player, spell);
+#endif
+    FOREACH_SCRIPT(PlayerScript)->OnSpellCastSuccess(player, spell);
+}
+
+void ScriptMgr::OnPlayerSpellLaunch(Player* player, Spell* spell)
+{
+#ifdef ELUNA
+    sEluna->OnSpellLaunch(player, spell);
+#endif
+    FOREACH_SCRIPT(PlayerScript)->OnSpellLaunch(player, spell);
+}
+
 BattlegroundScript::BattlegroundScript(const char* name)
     : ScriptObject(name)
 {
